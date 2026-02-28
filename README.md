@@ -124,10 +124,10 @@ Use **JSON body** (not form-data).
 
 ## Deploy to Render.com
 
-1. Push this repo to GitHub.  
-2. In [Render](https://render.com): New → Web Service, connect the repo.  
-3. Environment: Node. Build: `npm install`. Start: `npm start`.  
-4. Add a MySQL database (e.g. Render MySQL or external) and set `DATABASE_URL` or `DB_*` in Environment.  
+1. **Push this repo to GitHub** (see [SUBMIT.md](SUBMIT.md) for exact commands).
+2. **Create MySQL on Render:** Dashboard → New → MySQL. Note Internal Host, Port, Username, Password, Database.
+3. **Create Web Service:** In [Render](https://render.com): New → Web Service, connect the repo. Build: `npm install`, Start: `npm start`.
+4. **Environment** (e.g. Render MySQL or external) and set `DATABASE_URL` or `DB_*` in Environment.  
 5. Run migrations in Render shell or via a one-off release command if supported.  
 6. Put the live URL in this README under “Hosted Endpoint” and in the submission form.
 
