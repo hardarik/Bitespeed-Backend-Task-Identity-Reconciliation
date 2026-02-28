@@ -2,6 +2,26 @@
 
 Identity reconciliation service for linking customer contacts across orders (e.g. FluxKart.com). Links contacts by shared **email** or **phoneNumber**, keeps the oldest contact as **primary** and the rest as **secondary**.
 
+---
+
+## For examiners – assignment compliance
+
+| Assignment requirement | Implementation |
+|------------------------|----------------|
+| **Table named Contact** | Implemented as `Contacts` (Sequelize convention). Schema: `id` (Int PK), `phoneNumber` (String nullable), `email` (String nullable), `linkedId` (Int nullable – ID of another Contact linked to this one), `linkPrecedence` (`"primary"` \| `"secondary"` – primary = first in link), `createdAt`, `updatedAt`, `deletedAt`. See [Contact model](#contact-model), `migrations/`, `schema.sql` (MySQL), `schema-postgres.sql` (PostgreSQL). |
+| **POST /identify** | Request: JSON body with optional `email` (string), optional `phoneNumber` (string or number). At least one required. See [API](#api). |
+| **Response format** | `contact.primaryContatctId`, `contact.emails` (first = primary), `contact.phoneNumbers` (first = primary), `contact.secondaryContactIds`. JSON body only, not form-data. |
+| **No existing contact** | Creates new Contact with `linkPrecedence="primary"`, returns it with empty `secondaryContactIds`. |
+| **Match + new info** | Creates **secondary** Contact linked to existing primary. |
+| **Request links two primaries** | Oldest remains primary; newer becomes secondary. |
+| **Duplicate request** | Does not create a new row; returns consolidated contact. |
+| **Hosted endpoint** | See [Hosted Endpoint](#hosted-endpoint). Replace placeholder with live Render URL after deploy. |
+| **GitHub** | Small commits with clear messages. |
+
+**Quick verify (local):** `git clone` → `npm install` → set `.env` (MySQL) → `npx sequelize-cli db:migrate` → `npm start` → `POST http://localhost:3000/identify` with JSON body.
+
+---
+
 ## Tech Stack
 
 - **Runtime:** Node.js  
@@ -12,22 +32,26 @@ Identity reconciliation service for linking customer contacts across orders (e.g
 
 ## Contact Model
 
-| Field           | Type                      |
-|----------------|----------------------------|
-| id             | Int (PK)                   |
-| phoneNumber    | String (nullable)          |
-| email          | String (nullable)          |
-| linkedId       | Int (nullable, FK to Contact) |
-| linkPrecedence | `"primary"` \| `"secondary"` |
-| createdAt      | DateTime                   |
-| updatedAt      | DateTime                   |
-| deletedAt      | DateTime (nullable)        |
+_(As per assignment: table Contact with the following structure.)_
+
+| Field           | Type                      | Description |
+|----------------|----------------------------|-------------|
+| id             | Int (PK)                   | Primary key |
+| phoneNumber    | String (nullable)          | |
+| email          | String (nullable)          | |
+| linkedId       | Int (nullable)             | ID of another Contact linked to this one |
+| linkPrecedence | `"primary"` \| `"secondary"` | `"primary"` if first Contact in the link |
+| createdAt      | DateTime                   | |
+| updatedAt      | DateTime                   | |
+| deletedAt      | DateTime (nullable)        | |
+
+Database: table name `Contacts` (see `migrations/20240228000001-create-contacts.js`, `schema.sql`, `schema-postgres.sql`).
 
 ## API
 
 ### POST /identify
 
-**Request (JSON body):**
+**Request (JSON body only – not form-data):**
 
 ```json
 {
@@ -38,7 +62,7 @@ Identity reconciliation service for linking customer contacts across orders (e.g
 
 At least one of `email` or `phoneNumber` is required.
 
-**Response (200):**
+**Response (200):** `primaryContatctId` (as per assignment spec), `emails` (first element = email of primary contact), `phoneNumbers` (first element = phoneNumber of primary contact), `secondaryContactIds` (all Contact IDs that are secondary to the primary).
 
 ```json
 {
@@ -50,10 +74,6 @@ At least one of `email` or `phoneNumber` is required.
   }
 }
 ```
-
-- `emails`: primary contact’s email first, then others (unique).  
-- `phoneNumbers`: primary contact’s phone first, then others (unique).  
-- `secondaryContactIds`: all secondary contact IDs for this identity.
 
 **Behaviour:**
 
@@ -113,16 +133,17 @@ At least one of `email` or `phoneNumber` is required.
 
 ## Hosted Endpoint
 
-**Base URL:** _Replace with your Render URL after deployment (e.g. `https://bitespeed-identity-xxxx.onrender.com`)_
+**Base URL (replace with your Render URL after deployment):**  
+`https://YOUR-SERVICE-NAME.onrender.com`
 
 **Identify endpoint:**  
-`POST <YOUR_RENDER_URL>/identify`
+`POST https://YOUR-SERVICE-NAME.onrender.com/identify`
 
-Example after deploy:
+Use **JSON body** (not form-data). Example:
+
 ```bash
-curl -X POST https://YOUR-APP.onrender.com/identify -H "Content-Type: application/json" -d '{"email":"mcfly@hillvalley.edu","phoneNumber":"123456"}'
+curl -X POST https://YOUR-SERVICE-NAME.onrender.com/identify -H "Content-Type: application/json" -d '{"email":"mcfly@hillvalley.edu","phoneNumber":"123456"}'
 ```
-Use **JSON body** (not form-data).
 
 ## Deploy to Render.com
 
@@ -140,3 +161,7 @@ Use **JSON body** (not form-data).
 - App hosted (e.g. Render); endpoint URL in this README.  
 - Requests use **JSON body**, not form-data.  
 - Submit via: [BiteSpeed - Frontend Task Submission](https://forms.gle/hsQBJQ8tzbsp53D77)
+
+---
+
+**Database schema (assignment):** The `Contact` table is implemented with the exact fields from the assignment. See `migrations/20240228000001-create-contacts.js` (Sequelize, used for both MySQL and PostgreSQL), `schema.sql` (MySQL reference), and `schema-postgres.sql` (PostgreSQL reference).
