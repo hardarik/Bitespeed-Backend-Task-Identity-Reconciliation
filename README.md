@@ -7,7 +7,7 @@ Identity reconciliation service for linking customer contacts across orders (e.g
 - **Runtime:** Node.js  
 - **Framework:** Express.js  
 - **ORM:** Sequelize  
-- **Database:** MySQL  
+- **Database:** MySQL (local) / PostgreSQL (Render)  
 - **API:** REST (JSON body)
 
 ## Contact Model
@@ -87,11 +87,13 @@ At least one of `email` or `phoneNumber` is required.
 
 4. **Create DB and run migrations:**
 
+   **MySQL (local):**
    ```bash
    mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS bitespeed_identity CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
    mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS bitespeed_identity_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
    npx sequelize-cli db:migrate
    ```
+   **PostgreSQL (Render):** Use `npx sequelize-cli db:migrate` in the Render Shell (migrations work for both MySQL and Postgres). Raw reference schemas: `schema.sql` (MySQL), `schema-postgres.sql` (PostgreSQL).
 
 5. **Start server:**
 
@@ -125,10 +127,10 @@ Use **JSON body** (not form-data).
 ## Deploy to Render.com
 
 1. **Push this repo to GitHub** (see [SUBMIT.md](SUBMIT.md) for exact commands).
-2. **Create MySQL on Render:** Dashboard → New → MySQL. Note Internal Host, Port, Username, Password, Database.
+2. **Create PostgreSQL on Render:** Dashboard → New → PostgreSQL. Create a database (free tier available). Copy **Internal Database URL** or link it to the Web Service so `DATABASE_URL` is set automatically.
 3. **Create Web Service:** In [Render](https://render.com): New → Web Service, connect the repo. Build: `npm install`, Start: `npm start`.
-4. **Environment** (e.g. Render MySQL or external) and set `DATABASE_URL` or `DB_*` in Environment.  
-5. Run migrations in Render shell or via a one-off release command if supported.  
+4. **Environment** → Connect your PostgreSQL so `DATABASE_URL` is set, or add `DATABASE_URL` with the Internal Database URL. Ensure `NODE_ENV`=production.
+5. **Migrations:** In the service Shell run `npx sequelize-cli db:migrate`, or set Release Command to that.  
 6. Put the live URL in this README under “Hosted Endpoint” and in the submission form.
 
 ## Submission

@@ -16,24 +16,19 @@ Replace `YOUR_USERNAME` and `YOUR_REPO_NAME` with your GitHub username and repo 
 ## 2. Deploy to Render.com
 
 1. Go to [Render Dashboard](https://dashboard.render.com).
-2. **New → MySQL** – create a database. Copy **Internal Host**, **Username**, **Password**, **Database** (and Port if different from 3306).
+2. **New → PostgreSQL** – create a database (free tier is fine). Wait for it to be ready.
 3. **New → Web Service** – connect your GitHub account and select this repo.
 4. Settings:
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
-   - **Environment** → Add:
-     - `NODE_ENV` = `production`
-     - `DB_HOST` = (Internal Host from step 2)
-     - `DB_PORT` = `3306`
-     - `DB_USER` = (MySQL username)
-     - `DB_PASSWORD` = (MySQL password)
-     - `DB_NAME` = (MySQL database name)
-5. **Deploy.** After the first deploy, open the service → **Shell** and run:
+   - **Environment** → Click **Connect** next to your PostgreSQL database (or add env var `DATABASE_URL` and paste the **Internal Database URL** from the Postgres service). Render often adds `DATABASE_URL` automatically when you link the DB.
+   - Ensure `NODE_ENV` = `production` (Render may set this by default).
+5. **Deploy.** After the first deploy, open the Web Service → **Shell** and run:
    ```bash
    npx sequelize-cli db:migrate
    ```
-   Or in **Settings → Release Command** set: `npx sequelize-cli db:migrate`
-6. Copy your service URL (e.g. `https://bitespeed-identity-xxxx.onrender.com`).
+   Or in **Settings → Release Command** set: `npx sequelize-cli db:migrate` (so migrations run on each deploy).
+6. Copy your Web Service URL (e.g. `https://bitespeed-identity-xxxx.onrender.com`).
 
 ## 3. Update README
 
